@@ -12,12 +12,20 @@ class ApplicationController < Sinatra::Base
 		erb :index
 	end
 
-	get "/signup" do
+	get "/signup" do # form to create new user
 		erb :signup
 	end
 
 	post "/signup" do
 		#your code here!
+		user = User.new(:username => params[:username], :password => params[:password])
+
+	  if user.save
+	    redirect "/login"
+	  else
+	    redirect "/failure"
+	  end
+
 	end
 
 	get "/login" do
@@ -25,10 +33,17 @@ class ApplicationController < Sinatra::Base
 	end
 
 	post "/login" do
-		#your code here!
+	  user = User.find_by(:username => params[:username])
+
+	  if user && user.authenticate(params[:password])
+	    session[:user_id] = user.id
+	    redirect "/success"
+	  else
+	    redirect "/failure"
+	  end
 	end
 
-	get "/success" do
+	get "/success" do #successfully logs in
 		if logged_in?
 			erb :success
 		else
@@ -36,7 +51,7 @@ class ApplicationController < Sinatra::Base
 		end
 	end
 
-	get "/failure" do
+	get "/failure" do # error login in
 		erb :failure
 	end
 
@@ -47,11 +62,11 @@ class ApplicationController < Sinatra::Base
 
 	helpers do
 		def logged_in?
-			!!session[user_id]
+			!!session[user_id] # returns a true or false
 		end
 
 		def current_user
-			User.find(session[user_id])
+			User.find(session[user_id]) # returns the object that was found
 		end
 	end
 
